@@ -1,0 +1,11 @@
+# Binary hasil build
+*.exe
+*.test
+*.out
+
+# Data pribadi aplikasi
+todos.json
+
+# Editor
+.vscode/
+.idea/

@@ -126,8 +126,13 @@ func showMenu() {
 	fmt.Println("0. Keluar")
 }
 
+const dataFile = "todos.json"
+
 func main() {
 	list := NewTodoList()
+	if err := list.Load(dataFile); err != nil {
+		fmt.Println("Gagal memuat data:", err)
+	}
 	reader := bufio.NewReader(os.Stdin)
 
 	for {
@@ -145,6 +150,9 @@ func main() {
 			}
 			priority := readInput(reader, "Prioritas (High/Basic): ")
 			list.Add(name, priority)
+			if err := list.Save(dataFile); err != nil {
+				fmt.Println("Gagal menyimpan:", err)
+			}
 			fmt.Println("Tugas ditambahkan.")
 		case "3":
 			id, err := strconv.Atoi(readInput(reader, "ID tugas: "))
@@ -156,6 +164,9 @@ func main() {
 				fmt.Println("Error:", err)
 				continue
 			}
+			if err := list.Save(dataFile); err != nil {
+				fmt.Println("Gagal menyimpan:", err)
+			}
 			fmt.Println("Tugas ditandai selesai.")
 		case "4":
 			id, err := strconv.Atoi(readInput(reader, "ID tugas: "))
@@ -166,6 +177,9 @@ func main() {
 			if err := list.Delete(id); err != nil {
 				fmt.Println("Error:", err)
 				continue
+			}
+			if err := list.Save(dataFile); err != nil {
+				fmt.Println("Gagal menyimpan.")
 			}
 			fmt.Println("Tugas dihapus.")
 		case "0":
