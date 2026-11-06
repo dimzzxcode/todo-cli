@@ -1,6 +1,12 @@
 package main
 
-import "fmt"
+import (
+	"bufio"
+	"fmt"
+	"os"
+	"strconv"
+	"strings"
+)
 
 type Task struct {
 	ID       int
@@ -18,7 +24,7 @@ func NewTodoList() *TodoList {
 	return &TodoList{nextID: 1}
 }
 
-// listTasks menampilkan semua tugas
+// List menampilkan semua tugas.
 func (t *TodoList) List() {
 	if len(t.tasks) == 0 {
 		fmt.Println("Belum ada tugas.")
@@ -65,30 +71,70 @@ func (t *TodoList) Delete(id int) error {
 	return fmt.Errorf("tugas dengan ID %d tidak ditemukan", id)
 }
 
-func main() {
+func readInput(reader *bufio.Reader, prompt string) string {
+	fmt.Print(prompt)
+	text, _ := reader.ReadString('\n')
+	return strings.TrimSpace(text)
+}
+
+func showMenu(){
+	fmt.Println()
 	fmt.Println("=== Todo List CLI===")
+	fmt.Println("1. Lihat Tugas")
+	fmt.Println("2. Tambah Tugas")
+	fmt.Println("3. Tandai Tugas")
+	fmt.Println("4. Hapus Tugas")
+	fmt.Println("0. Keluar")
+}
 
+func main() {
 	list := NewTodoList()
+	reader := bufio.NewReader(os.Stdin)
 
-	list.Add("Belajar Go", "High")
-	list.Add("Latihan CLI", "Basic")
-	list.Add("Latihan Pointer", "High")
-	list.Add("Latihan Struct", "High")
-	
-	if err := list.MarkDone(1); err != nil {
-		fmt.Println("Error:", err)
-	}
-	
-	if err := list.Delete(2); err != nil {
-		fmt.Println("Error:", err)
-	}
+	for {
+		showMenu()
+		choice := readInput(reader,"Pilih menu: ")
 
-	if err := list.Delete(99); err != nil {
-		fmt.Println("Error:", err)
-	}
-	
-	list.Add("Tugas baru", "Basic")
+		switch choice {
+		case "1":
+			list.List()
+		case "2":
+			name := readInput(reader, "Nama tugas: ")
+			if name == "" {
+				fmt.Println("Nama tugas tidak boleh kosong.")
+				continue
+			}
+			priority := readInput(reader, "Prioritas (High/Basic): ")
+			list.Add(name, priority)
+			fmt.Println("Tugas ditambahkan.")
+		case "3":
+			id, err := strconv.Atoi(readInput(reader, "ID tugas: "))
+			if err != nil {
+				fmt.Println("ID harus berupa angka.")
+				continue
+			}
+			if err := list.MarkDone(id); err != nil {
+				fmt.Println("Error:", err)
+				continue
+			}
+			fmt.Println("Tugas ditandai selesai.")
+		case "4":
+			id, err := strconv.Atoi(readInput(reader, "ID tugas: "))
+			if err != nil {
+				fmt.Println("ID harus berupa angka.")
+				continue
+			}
+			if err := list.Delete(id); err != nil {
+				fmt.Println("Error:", err)
+				continue
+			}
+			fmt.Println("Tugas dihapus.")
+		case "0":
+			fmt.Println("Sampai jumpa!")
+			return
 
-	list.List()
-	fmt.Printf("nextID sekarang: %d\n", list.nextID)
+		default:
+			fmt.Println("Menu tidak dikenal.")
+		}
+	}
 }
