@@ -2,6 +2,8 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"strconv"
@@ -16,8 +18,13 @@ type Task struct {
 }
 
 type TodoList struct {
-	tasks []Task
+	tasks  []Task
 	nextID int // id naik tidak turun
+}
+
+type Storage struct {
+	Tasks  []Task `json:"tasks"`
+	NextID int    `json:"next_id"`
 }
 
 func NewTodoList() *TodoList {
@@ -71,13 +78,45 @@ func (t *TodoList) Delete(id int) error {
 	return fmt.Errorf("tugas dengan ID %d tidak ditemukan", id)
 }
 
+// save tugas ke file json
+func (t *TodoList) Save(filename string) error {
+	data := Storage{Tasks: t.tasks, NextID: t.nextID}
+
+	bytes, err := json.MarshalIndent(data, "", " ")
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(filename, bytes, 0644)
+}
+
+// load file json
+// jika tidak ada dianggap kosong
+func (t *TodoList) Load(filename string) error {
+	bytes, err := os.ReadFile(filename)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return nil
+		}
+		return err
+	}
+
+	var data Storage
+	if err := json.Unmarshal(bytes, &data); err != nil {
+		return err
+	}
+
+	t.tasks = data.Tasks
+	t.nextID = data.NextID
+	return nil
+}
+
 func readInput(reader *bufio.Reader, prompt string) string {
 	fmt.Print(prompt)
 	text, _ := reader.ReadString('\n')
 	return strings.TrimSpace(text)
 }
 
-func showMenu(){
+func showMenu() {
 	fmt.Println()
 	fmt.Println("=== Todo List CLI===")
 	fmt.Println("1. Lihat Tugas")
@@ -93,7 +132,7 @@ func main() {
 
 	for {
 		showMenu()
-		choice := readInput(reader,"Pilih menu: ")
+		choice := readInput(reader, "Pilih menu: ")
 
 		switch choice {
 		case "1":
