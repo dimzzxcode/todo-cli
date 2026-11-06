@@ -18,14 +18,14 @@ func NewTodoList() *TodoList {
 	return &TodoList{nextID: 1}
 }
 
-// listTasks menampilkan semua tugas di slice
-func listTasks(tasks []Task) {
-	if len(tasks) == 0 {
+// listTasks menampilkan semua tugas
+func (t *TodoList) List() {
+	if len(t.tasks) == 0 {
 		fmt.Println("Belum ada tugas.")
 		return
 	}
 
-	for _, task := range tasks {
+	for _, task := range t.tasks {
 		status := " "
 		if task.Done {
 			status = "x"
@@ -45,20 +45,20 @@ func (t *TodoList) Add(name, priority string) {
 	t.nextID++
 }
 
-func markDone(tasks []Task, id int) error {
-	for i := range tasks {
-		if tasks[i].ID == id {
-			tasks[i].Done = true
+func (t *TodoList) MarkDone(id int) error {
+	for i := range t.tasks {
+		if t.tasks[i].ID == id {
+			t.tasks[i].Done = true
 			return nil
 		}
 	}
 	return fmt.Errorf("tugas dengan ID %d tidak ditemukan", id)
 }
 
-func deleteTask(tasks *[]Task, id int) error {
-	for i, task := range *tasks {
+func (t *TodoList) Delete(id int) error {
+	for i, task := range t.tasks {
 		if task.ID == id {
-			*tasks = append((*tasks)[:i], (*tasks)[i+1:]...)
+			t.tasks = append((t.tasks)[:i], (t.tasks)[i+1:]...)
 			return nil
 		}
 	}
@@ -74,8 +74,21 @@ func main() {
 	list.Add("Latihan CLI", "Basic")
 	list.Add("Latihan Pointer", "High")
 	list.Add("Latihan Struct", "High")
+	
+	if err := list.MarkDone(1); err != nil {
+		fmt.Println("Error:", err)
+	}
+	
+	if err := list.Delete(2); err != nil {
+		fmt.Println("Error:", err)
+	}
+
+	if err := list.Delete(99); err != nil {
+		fmt.Println("Error:", err)
+	}
+	
 	list.Add("Tugas baru", "Basic")
 
-	fmt.Printf("%+v\n", list.tasks)
+	list.List()
 	fmt.Printf("nextID sekarang: %d\n", list.nextID)
 }
