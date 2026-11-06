@@ -9,6 +9,15 @@ type Task struct {
 	Priority string
 }
 
+type TodoList struct {
+	tasks []Task
+	nextID int // id naik tidak turun
+}
+
+func NewTodoList() *TodoList {
+	return &TodoList{nextID: 1}
+}
+
 // listTasks menampilkan semua tugas di slice
 func listTasks(tasks []Task) {
 	if len(tasks) == 0 {
@@ -25,15 +34,15 @@ func listTasks(tasks []Task) {
 	}
 }
 
-// addTasks versi pertama: menerima slice biasa
-func addTask(tasks *[]Task, name, priority string) {
-	newTask := Task{
-		ID:       len(*tasks) + 1,
+func (t *TodoList) Add(name, priority string) {
+	task := Task{
+		ID:       t.nextID,
 		Name:     name,
 		Done:     false,
 		Priority: priority,
 	}
-	*tasks = append(*tasks, newTask)
+	t.tasks = append(t.tasks, task)
+	t.nextID++
 }
 
 func markDone(tasks []Task, id int) error {
@@ -59,25 +68,14 @@ func deleteTask(tasks *[]Task, id int) error {
 func main() {
 	fmt.Println("=== Todo List CLI===")
 
-	var tasks []Task
+	list := NewTodoList()
 
-	addTask(&tasks, "Belajar Go", "High")
-	addTask(&tasks, "Latihan CLI", "Basic")
-	addTask(&tasks, "Latihan Pointer", "High")
-	addTask(&tasks, "Latihan Struct", "High")
-	addTask(&tasks, "Tugas baru", "Basic")
+	list.Add("Belajar Go", "High")
+	list.Add("Latihan CLI", "Basic")
+	list.Add("Latihan Pointer", "High")
+	list.Add("Latihan Struct", "High")
+	list.Add("Tugas baru", "Basic")
 
-	if err := markDone(tasks, 1); err != nil {
-		fmt.Println("Error:", err)
-	}
-
-	if err := deleteTask(&tasks, 2); err != nil {
-		fmt.Print("Error:", err)
-	}
-
-	if err := markDone(tasks, 99); err != nil {
-		fmt.Println("Error:", err)
-	}
-
-	listTasks(tasks)
+	fmt.Printf("%+v\n", list.tasks)
+	fmt.Printf("nextID sekarang: %d\n", list.nextID)
 }
